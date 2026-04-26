@@ -19,6 +19,8 @@ parts:
   chapters:
   - file: tables_and_editing
   - file: simplification
+    sections:
+    - file: advanced_simplification
   - file: viz
   - file: metadata
   - file: args
