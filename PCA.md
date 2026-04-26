@@ -12,15 +12,15 @@ kernelspec:
   name: python3
 ---
 
-# PCA, on branches and SNPs
+# Principal Components Analysis
+
+**Hannes Becher**
 
 +++
 
 Principal Component Analysis (PCA) is commonly used for exploring population structure in genetic datasets, where it is usually computed from SNP genotyped data. In the context of ARGs, it is also possible to perform branch PCA as implemented in `tskit`. This does not use variant data. (Of course, it may indirectly rely on variant data if the ARG was inferred from data.)
 
-In this tutorial, we demonstrate both approaches. We will apply these to haplotypes and diploid genotype data.
-
-The documentation of `tskit.TreeSequence.pca` can be found [here](https://tskit.dev/tskit/docs/stable/python-api.html#tskit.TreeSequence.pca).
+In this tutorial, we demonstrate both approaches. We will apply these to haplotypes and diploid genotype data using the built-in {meth}`TreeSequence.pca` method.
 
 +++
 
@@ -96,7 +96,7 @@ fstmat
 To demstrate that branch PCA works without variant data, we run it on the ARG without mutations, `ts`.
 
 ```{code-cell} ipython3
-# haplotypes, each sample haplotype is ues by default
+# haplotypes, each sample haplotype is used by default
 hapBranchPca=ts.pca(num_components=10)
 ```
 
@@ -172,7 +172,8 @@ The plots on the left show one dot per haplotype. These have twice as many dots 
 +++
 
 ## Comparing variance components between branch and SNP PCA
-Both `numpy.linalg.svd` and `tskit.TreeSequence.pca` return information about the amount of variation accounted for by each PC. These information are stored in the slots `S` (standard variation for SVD) and `eigenvalues` (variance for branch PCA). To make the two match, we need to multiply the eigenvalues by the mutation rate before taking the square root.
+
+Both `numpy.linalg.svd` and `tskit.TreeSequence.pca` return information about the amount of variation accounted for by each PC. For `linalg.svd` this is stored as "standard variation" in the `S` attribute, and for `TreeSequence.pca` this is stored as "variance" in the `eigenvalues` attribute. To make the two match, we need to multiply the eigenvalues by the mutation rate and take the square root.
 
 ```{code-cell} ipython3
 # square root of (branch eigenvalues multiplied by the mutation rate)
@@ -203,7 +204,7 @@ plt.show()
 ```
 
 ## Time windows
-Above we showed how variant and branch-based PCA are equivalent. But the ARG is a much richer data type than the genotype matrix. ARGs contain information about the historic relationships between the samples (possibly blurred by a inference step). Branch PCA allows one to specify a time window over which the PCA is to be computed, something that cannot be done for SNP PCA. Next, we compute PCA in time slices with breaks 0, 10, 100, 1000, 10,000, 100,000, 100,0000, 1,000,000, and 10,000,000. The results are stored in a list.
+Above we showed how variant and branch-based PCA are equivalent. But the ARG is a much richer data type than the genotype matrix. ARGs contain information about the historic relationships between the samples (possibly blurred by an inference step). Branch PCA allows one to specify a time window over which the PCA is to be computed, something that cannot be done for SNP PCA. Next, we compute PCA in time slices with breaks 0, 10, 100, 1000, 10,000, 100,000, 100,0000, 1,000,000, and 10,000,000. The results are stored in a list.
 
 ```{code-cell} ipython3
 pctime=[tsm.pca(num_components=10, time_windows=[10**i, 10**(i+1)]) for i in range(8)]
@@ -235,4 +236,6 @@ pctime[7].factors[:20,:10]
 ## Empirical data
 Here, we demonstrated using simulated data how SNPs and ARG branches lead to equivalent PCA results. For empirical data, the ancestral states of variant sites are not known a priori, which will in practice often lead to polarisation differences. That may affect the outcome of PCA.
 
-**TODO:** Extend Tutorial to empirical data.
+:::{todo}
+Extend to empirical data.
+:::
