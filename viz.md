@@ -337,19 +337,17 @@ See {ref}`sec_tskit_viz_dynamic_effects` if you want to dynamically hide and sho
 labels.
 
 ```{code-cell} ipython3
-nd_labels = {}  # An array of labels for the nodes
-for n in ts_mutated.nodes():
+nd_labels = {  # An array of labels for the nodes
     # Set sample node labels from metadata. Here we use the population name, but you might want
     # to use the *individual* name instead, if the individuals in your tree sequence have names
-    if n.is_sample():
-        nd_labels[n.id] = ts_mutated.population(n.population).metadata["name"]
+    n.id: ts_mutated.population(n.population).metadata["name"]
+    for n in ts_mutated.nodes()
+    if n.is_sample()
+}
 
-mut_labels = {}  # An array of labels for the mutations
-for mut in ts_mutated.mutations():  # Make pretty labels showing the change in state
-    site = ts_mutated.site(mut.site)
-    older_mut = mut.parent >= 0  # is there an older mutation at the same position?
-    prev = ts_mutated.mutation(mut.parent).derived_state if older_mut else site.ancestral_state
-    mut_labels[mut.id] = f"{prev}→{mut.derived_state}"
+mut_labels = { # An array of labels for the mutations
+    mut.id: f"{mut.inherited_state}→{mut.derived_state}" for mut in ts_mutated.mutations()
+}  
 
 ts_mutated.draw_svg(
     size=(1000, 300),
@@ -370,12 +368,8 @@ knowledge of the SVG graphics language (see the {ref}`sec_tskit_viz_legend_examp
 later in this tutorial for a node colour legend).
 
 ```{code-cell} ipython3
-mut_labels = {  # Alternative way of defining a label dictionary using a dict comprehension
-    mut.id: (
-        (ts_mutated.mutation(mut.parent).derived_state if mut.parent < 0 else site.ancestral_state) +
-        str(int(site.position)) +
-        mut.derived_state
-    )
+mut_labels = {
+    mut.id: f"{mut.inherited_state}{int(site.position)}{mut.derived_state}"
     for site in ts_mutated.sites() for mut in site.mutations
 }
 
@@ -752,7 +746,7 @@ css_string = (
 
     # Override default node text position to be based at (0, 0) relative to the node pos
     # Note that the .tree specifier is needed to make this more specific than the default
-    # positioning which is targetted at ".lab.lft" and ".lab.rgt"
+    # positioning which is targeted at ".lab.lft" and ".lab.rgt"
     ".tree .node > .lab {transform: translate(0, 0); text-anchor: middle; font-size: 7pt}"
 
     # For leaf nodes, override the above positioning using a subsequent CSS style
@@ -947,7 +941,7 @@ itself (and not its descendants) a slightly different specification is required,
 involving, the "`>`" symbol, or
 [child combinator](https://www.w3.org/TR/selectors-3/#child-combinators) (we have,
 in fact, used it in several previous examples). The following plot shows the difference
-when all decendant symbols are targetted, versus just the immediate child symbol:
+when all decendant symbols are targeted, versus just the immediate child symbol:
 
 ```{code-cell} ipython3
 node_style1 = ".n13 .sym {fill: yellow}"  # All symbols under node 13 
@@ -959,7 +953,7 @@ ts_small.draw_svg(y_axis=True, y_ticks=y_tick_pos, x_lim=x_limits, style=css_str
 Another example of modifying the style target is *negation*. This is needed, for example,
 to target nodes that are *not* leaves (i.e. internal nodes). One way to do this is to
 target *all* the node symbols first, then replace the style with a more specific
-targetting of the leaf symbols only:
+targeting of the leaf symbols only:
 
 ```{code-cell} ipython3
 hide_internal_symlabs = ".node > .sym, .node > .lab {display: none}"
@@ -1776,7 +1770,7 @@ def tanglegram(
         
     lft_node_map, lft = reorder_tree_nodes(lft, leaves)
     lft_rev_map = make_reverse_map(lft_node_map)
-    # Have to change the node labels, because even provided ones will be targetting the wrong IDs
+    # Have to change the node labels, because even provided ones will be targeting the wrong IDs
     lft_node_labels = {u: node_labels[v] for u, v in enumerate(lft_node_map) if v in node_labels}
     if order[1] is None:
         # We do not reorder the RH tree, so the node IDs should stay as-is
